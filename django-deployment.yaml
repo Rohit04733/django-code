@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: django-web-srvc
+  namespace: react-test
   labels:
     app: djangoweb
 spec:
@@ -12,44 +13,11 @@ spec:
     tier: frontend
   type: LoadBalancer
 ---
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  labels:
-    app: django1
-  name: django-pv1
-spec:
-  accessModes:
-  - ReadWriteOnce
-  capacity:
-    storage: 5Gi
-  hostPath:
-    path: /home/docker/myFirstProject
-    type: ""
-  persistentVolumeReclaimPolicy: Recycle
-  claimRef:
-    namespace: default
-    name: django-pv-claim6
-  volumeMode: Filesystem
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: django-pv-claim6
-  labels:
-    app: django
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
-  volumeName: django-pv1 # mount to this persistent volume
----
 apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
 kind: Deployment
 metadata:
   name: django-deployment
+  namespace: react-test
   labels:
     app: django
 spec:
@@ -67,15 +35,8 @@ spec:
         tier: frontend
     spec:
       containers:
-      - image: abhishek235/django_web:new1
+      - image: ${ECR_REPOSITORY}:${IMAGE_TAG}
         name: django
         ports:
         - containerPort: 8000
           name: django
-        volumeMounts:
-        - name: django-persistent-storage
-          mountPath: /myFirstProject
-      volumes:
-      - name: django-persistent-storage
-        persistentVolumeClaim:
-          claimName: django-pv-claim6
